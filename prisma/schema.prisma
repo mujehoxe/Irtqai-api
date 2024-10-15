@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId        String   @id @default(uuid())
+  email String  @unique
+  name  String
+  currentLevel Int @default(1)
+  quizResponses QuizResponse[]
+  khatmaProgress Float @default(0)
+  achievements Achievement[]
+  fav_reader String?
+  UserHokmPositions UserHokmPosition[]
+}
+model UserHokmPosition{
+  userId String
+  user User @relation(fields: [userId],references: [userId],onDelete: Cascade)
+  hokmName String
+  hokm hokm @relation(fields: [hokmName],references: [hokmName],onDelete: Cascade)
+  position String @default("النظري")
+  @@id([userId,hokmName])
+  @@unique([userId,hokmName])
+}
+model hokm{
+  UserHokmPositions UserHokmPosition[]
+  hokmName String  @id
+  arabicName String
+  passPoint Int @default(50)
+  quizzes Quizz[]
+  hokmLevels hokmLevel[]
+  exemples TajweedVerse[]
+}
+
+model hokmLevel{
+  type String
+  hokmLevelId Int @id @default(autoincrement())
+  details String?
+  hokmName String
+  hokm hokm @relation(fields: [hokmName], references: [hokmName],onDelete: Cascade)
+  tajweedVerseId String?
+  videoUrl String?
+  exemple TajweedVerse? @relation(fields: [tajweedVerseId], references: [tajweedVerseId])
+}
+model Verse{
+  verseId String @id @default(uuid())
+  chapitre_num Int
+  verse_num Int
+  text String @db.Text
+}
+model TajweedVerse{
+  hokmLevel hokmLevel[]
+  tajweedVerseId String  @id @default(uuid())
+  hokmName String
+  hokm hokm @relation(fields: [hokmName], references: [hokmName],onDelete: Cascade)
+  chapitre_num Int
+  verse_num Int
+  text String
+  description String @db.Text
+  audioUrl String
+}
+model QuizResponse{
+  quizzId Int
+  quizz Quizz @relation(fields: [quizzId], references: [quizzId],onDelete: Cascade)
+  audio_url String
+  userId String
+  user User @relation(fields: [userId], references: [userId],onDelete: Cascade)
+   @@id([quizzId, userId])
+   @@unique([quizzId, userId])
+}
+model Quizz{
+  quizzId Int @id @default(autoincrement())
+  point Int 
+  chapitre_num Int
+  verse_num Int
+  text String
+  type String 
+  hokmName String 
+  hokm hokm @relation(fields: [hokmName],references: [hokmName],onDelete: Cascade)
+  QuizResponses QuizResponse[]
+}
+
+// model PointDetails{
+//   pointId Int @id @default(autoincrement())
+//   point Int
+//   users User
+// }
+
+model Achievement{
+achievementId Int @id @default(autoincrement())
+users User[]
+name String
+description String @db.Text
+condition String 
+imgUrl String
+}
